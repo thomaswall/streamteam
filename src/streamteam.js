@@ -3,7 +3,7 @@ export default class StreamTeam {
         let defaultArgs = {
             fftSize: 512,
             chunkSize: 30,
-            bitRate: 16000
+            bitRate: 16500
         }
 
         this.args = {
@@ -22,11 +22,15 @@ export default class StreamTeam {
         this.startTime = 0;
         this.lastTime = 0;
         this.currentTime = 0;
+        this.grabbed = false;
         this.grabbing = false;
-        this.paused = false;
+        this.paused = true;
+        this.muted = false;
+        this.readyToPlay = false;
     }
 
     startBuffer = () => {
+
         this.sourceJs = window.context.createScriptProcessor(2048, 1, 1);
         this.sourceJs.buffer = this.buffers[0];
         this.sourceJs.connect(window.context.destination);
@@ -79,16 +83,25 @@ export default class StreamTeam {
         this.frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
         this.analyser.getByteFrequencyData(this.frequencyArray);
 
-        if((this.currentTime - this.startTime)%this.args.chunkSize > this.args.chunkSize/2 + 0.5 && !this.grabbing) {
+        if((this.currentTime - this.startTime)%this.args.chunkSize > this.args.chunkSize/2 + 0.5 && !this.grabbing && !this.grabbed && !this.paused) {
             this.grabbing = true;
-            this.grabNewBuffer(false);
+            this.grabNewBuffer(false)
+                .then(res => {
+                    this.grabbed = true;
+                    this.grabbing = false;
+            });
         }
 
-        if((this.currentTime - this.startTime)%this.args.chunkSize < 0.5 && this.grabbing) {
-            this.grabbing = false;
+        if((this.currentTime - this.startTime)%this.args.chunkSize < 0.5 && !(this.currentTime - this.startTime < 0.5) && (this.grabbing || this.grabbed)) this.readyToPlay = true;
+
+        if(this.readyToPlay && this.grabbed && !this.paused) {
+            this.grabbed = false;
+            this.readyToPlay = false;
+            this.paused = false;
             this.connectNewBuffer();
         }
-        if(Math.abs(window.context.currentTime - this.lastTime) > 0.5 && !this.paused) {
+
+        if(Math.abs(window.context.currentTime - this.lastTime) > 0.5 && !this.paused && !(!this.grabbed && this.readyToPlay)) {
             this.currentTime = this.currentTime + window.context.currentTime - this.lastTime;
             this.lastTime = window.context.currentTime;
         }
@@ -134,4 +147,35 @@ export default class StreamTeam {
             this.bufferIndex += 1
         });
     }
+
+    play = () => {
+        this.lastTime = window.context.currentTime;
+        this.paused = false;
+        this.startBuffer();
+    }
+
+    pause = () => {
+        this.paused = true;
+        this.stopBuffer();
+    }
+
+    muteOrUnmute = () => {
+        if(this.muted) {
+            this.gainNode.gain.value = 1;
+        }
+        else {
+            this.gainNode.gain.value = -1;
+        }
+
+        this.muted = !this.muted;
+    }
+
+    getCurrentTime = () => this.currentTime;
+
+    setStartTime = (newStart) => {
+        this.startTime = newStart;
+        this.currentTime = newStart;
+    }
+
+    getFrequencies = () => this.frequencyArray;
 }

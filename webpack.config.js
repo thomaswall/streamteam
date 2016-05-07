@@ -15,10 +15,6 @@ module.exports = {
         library: 'streamteam',
         libraryTarget: 'umd'
     },
-
-    externals: {
-        d3: true
-    },
     
     module: {
         loaders: [
