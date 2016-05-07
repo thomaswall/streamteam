@@ -3,13 +3,15 @@ export default class StreamTeam {
         let defaultArgs = {
             fftSize: 512,
             chunkSize: 30,
-            bitRate: 16500
+            bitRate: 16000
         }
 
         this.args = {
             ...defaultArgs,
             ...userArgs
         }
+
+        this.args.bitRate += 500 //account for ~0.5 second skips between buffers
 
         if(!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
         this.gainNode = window.context.createGain();
@@ -149,9 +151,19 @@ export default class StreamTeam {
     }
 
     play = () => {
-        this.lastTime = window.context.currentTime;
-        this.paused = false;
-        this.startBuffer();
+        if(this.buffers.length > 0) {
+            this.lastTime = window.context.currentTime;
+            this.paused = false;
+            this.startBuffer();
+        }
+        else {
+            this.grabNewBuffer(true)
+                .then(res => {
+                    this.lastTime = window.context.currentTime;
+                    this.paused = false;
+                    this.startBuffer();
+                });
+        }
     }
 
     pause = () => {

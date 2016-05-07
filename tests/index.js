@@ -2,10 +2,11 @@ import StreamTeam from '../src/streamteam.js';
 
 let stream = new StreamTeam({
     url: "http://video-zoo.watson-proto.blue/2012prez.mp3",
-    chunkSize: 60
+    chunkSize: 10
 });
 
-stream.setStartTime(600);
+stream.setStartTime(500);
 
-stream.grabNewBuffer(true)
-    .then(res => stream.play())
+stream.play()
+
+setTimeout(() => { stream.pause();stream.play()}, 3000)
