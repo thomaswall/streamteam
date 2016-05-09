@@ -10,3 +10,5 @@ stream.setStartTime(500);
 stream.play()
 
 setTimeout(() => { stream.pause();stream.play()}, 3000)
+
+setInterval(() => console.log(stream.getCurrentTime()), 1000)

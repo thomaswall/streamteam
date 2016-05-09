@@ -79,6 +79,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _classCallCheck(this, StreamTeam);
 
 	    this.startBuffer = function () {
+
 	        _this.sourceJs = window.context.createScriptProcessor(2048, 1, 1);
 	        _this.sourceJs.buffer = _this.buffers[0];
 	        _this.sourceJs.connect(window.context.destination);
@@ -90,7 +91,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        source.buffer = _this.buffers[0];
 	        source.connect(_this.analyser);
 	        source.connect(window.context.destination);
-	        source.start(0, (_this.currentTime - _this.startTime) % _this.chunkSize);
+	        source.start(0, (_this.currentTime - _this.startTime) % _this.args.chunkSize);
 	        source.connect(_this.gainNode);
 
 	        _this.sources[0] = source;
@@ -135,22 +136,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.frequencyArray = new Uint8Array(_this.analyser.frequencyBinCount);
 	        _this.analyser.getByteFrequencyData(_this.frequencyArray);
 
-	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize > _this.args.chunkSize / 2 + 0.5 && !_this.grabbing) {
+	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize > _this.args.chunkSize / 2 + 0.5 && !_this.grabbing && !_this.grabbed && !_this.paused) {
 	            _this.grabbing = true;
-	            _this.grabNewBuffer(false);
+	            _this.grabNewBuffer(false).then(function (res) {
+	                _this.grabbed = true;
+	                _this.grabbing = false;
+	            });
 	        }
 
-	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize < 0.5 && _this.grabbing) {
-	            _this.grabbing = false;
+	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize < 0.5 && !(_this.currentTime - _this.startTime < 0.5) && (_this.grabbing || _this.grabbed)) _this.readyToPlay = true;
+
+	        if (_this.readyToPlay && _this.grabbed && !_this.paused) {
+	            _this.grabbed = false;
+	            _this.readyToPlay = false;
+	            _this.paused = false;
 	            _this.connectNewBuffer();
 	        }
 
-	        if (_this.refs.scrubber && Math.abs(window.context.currentTime - _this.lastTime) > 0.5 && !_this.paused) {
-
+	        if (Math.abs(window.context.currentTime - _this.lastTime) > 0.5 && !_this.paused && !(!_this.grabbed && _this.readyToPlay)) {
 	            _this.currentTime = _this.currentTime + window.context.currentTime - _this.lastTime;
-
-	            _this.refs.scrubber.value = _this.currentTime / _this.duration * 100;
-
 	            _this.lastTime = window.context.currentTime;
 	        }
 	    };
@@ -192,6 +196,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	        });
 	    };
 
+	    this.play = function () {
+	        //bufferindex reset?
+	        if (_this.buffers.length > 0) {
+	            _this.lastTime = window.context.currentTime;
+	            _this.paused = false;
+	            _this.startBuffer();
+	        } else {
+	            _this.grabNewBuffer(true).then(function (res) {
+	                _this.lastTime = window.context.currentTime;
+	                _this.paused = false;
+	                _this.startBuffer();
+	            });
+	        }
+	    };
+
+	    this.pause = function () {
+	        _this.paused = true;
+	        _this.stopBuffer();
+	    };
+
+	    this.muteOrUnmute = function () {
+	        if (_this.muted) {
+	            _this.gainNode.gain.value = 1;
+	        } else {
+	            _this.gainNode.gain.value = -1;
+	        }
+
+	        _this.muted = !_this.muted;
+	    };
+
+	    this.getCurrentTime = function () {
+	        return _this.currentTime;
+	    };
+
+	    this.setStartTime = function (newStart) {
+	        _this.startTime = newStart;
+	        _this.currentTime = newStart;
+	    };
+
+	    this.getFrequencies = function () {
+	        return _this.frequencyArray;
+	    };
+
 	    var defaultArgs = {
 	        fftSize: 512,
 	        chunkSize: 30,
@@ -199,6 +246,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this.args = _extends({}, defaultArgs, userArgs);
+
+	    this.args.bitRate += 500; //account for ~0.5 second skips between buffers
 
 	    if (!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
 	    this.gainNode = window.context.createGain();
@@ -211,8 +260,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.startTime = 0;
 	    this.lastTime = 0;
 	    this.currentTime = 0;
+	    this.grabbed = false;
 	    this.grabbing = false;
 	    this.paused = true;
+	    this.muted = false;
+	    this.readyToPlay = false;
 	};
 
 	exports['default'] = StreamTeam;

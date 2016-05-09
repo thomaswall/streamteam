@@ -151,6 +151,7 @@ export default class StreamTeam {
     }
 
     play = () => {
+        //bufferindex reset?
         if(this.buffers.length > 0) {
             this.lastTime = window.context.currentTime;
             this.paused = false;
