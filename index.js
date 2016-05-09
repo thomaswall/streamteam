@@ -197,12 +197,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this.play = function () {
-	        //bufferindex reset?
+
 	        if (_this.buffers.length > 0) {
 	            _this.lastTime = window.context.currentTime;
 	            _this.paused = false;
 	            _this.startBuffer();
 	        } else {
+	            _this.bufferIndex = 0;
 	            _this.grabNewBuffer(true).then(function (res) {
 	                _this.lastTime = window.context.currentTime;
 	                _this.paused = false;
@@ -233,6 +234,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.setStartTime = function (newStart) {
 	        _this.startTime = newStart;
 	        _this.currentTime = newStart;
+	        _this.buffers = [];
+	        _this.sources = [];
 	    };
 
 	    this.getFrequencies = function () {

@@ -151,13 +151,14 @@ export default class StreamTeam {
     }
 
     play = () => {
-        //bufferindex reset?
+
         if(this.buffers.length > 0) {
             this.lastTime = window.context.currentTime;
             this.paused = false;
             this.startBuffer();
         }
         else {
+            this.bufferIndex = 0;
             this.grabNewBuffer(true)
                 .then(res => {
                     this.lastTime = window.context.currentTime;
@@ -188,6 +189,8 @@ export default class StreamTeam {
     setStartTime = (newStart) => {
         this.startTime = newStart;
         this.currentTime = newStart;
+        this.buffers = [];
+        this.sources = [];
     }
 
     getFrequencies = () => this.frequencyArray;
