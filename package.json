@@ -9,9 +9,7 @@
     },
     "author": "Thomas Wall",
     "dependencies": {
-        "babel-runtime": "^5.8.24",
-        "cola": "tgdwyer/WebCola#master",
-        "webcola": "^3.1.3"
+        "babel-runtime": "^5.8.24"
       },
       "devDependencies": {
         "autoprefixer-loader": "^3.1.0",
