@@ -11,7 +11,7 @@ export default class StreamTeam {
             ...userArgs
         }
 
-        this.args.bitRate += 500 //account for ~0.5 second skips between buffers
+        this.args.bitRate += 50 * this.args.chunkSize //account for ~0.5 second skips between buffers
 
         if(!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
         this.gainNode = window.context.createGain();
@@ -37,7 +37,7 @@ export default class StreamTeam {
         this.sourceJs.buffer = this.buffers[0];
         this.sourceJs.connect(window.context.destination);
         this.analyser = window.context.createAnalyser();
-        this.analyser.fftSize = 512;
+        this.analyser.fftSize = this.args.fftSize;
         this.analyser.connect(this.sourceJs);
 
         let source = window.context.createBufferSource();

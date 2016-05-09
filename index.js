@@ -84,7 +84,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.sourceJs.buffer = _this.buffers[0];
 	        _this.sourceJs.connect(window.context.destination);
 	        _this.analyser = window.context.createAnalyser();
-	        _this.analyser.fftSize = 512;
+	        _this.analyser.fftSize = _this.args.fftSize;
 	        _this.analyser.connect(_this.sourceJs);
 
 	        var source = window.context.createBufferSource();
@@ -250,7 +250,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    this.args = _extends({}, defaultArgs, userArgs);
 
-	    this.args.bitRate += 500; //account for ~0.5 second skips between buffers
+	    this.args.bitRate += 50 * this.args.chunkSize; //account for ~0.5 second skips between buffers
 
 	    if (!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
 	    this.gainNode = window.context.createGain();

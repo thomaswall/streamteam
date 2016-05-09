@@ -13,6 +13,9 @@ let stream = new StreamTeam({
 })
 ```
 
+`chunkSize` was created in order to have control of request time of the chunk. Best practice is to make `chunkSize` as large as possible without sacrificing load time. If an audio file is small enough, you can make chunksize the length of the entire file (eliminating any streaming logic).
+
+
 To change starting point of stream (in seconds):
 
 `stream.setStartTime(200);`

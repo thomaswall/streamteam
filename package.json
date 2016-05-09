@@ -1,6 +1,6 @@
 {
     "name": "streamteam",
-    "version": "0.0.1",
+    "version": "0.1.1",
     "description": "web audio made easy",
     "main": "index.js",
     "scripts": {
