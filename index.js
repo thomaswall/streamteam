@@ -168,7 +168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return new _Promise(function (resolve, reject) {
 	            var request = new XMLHttpRequest();
 	            request.open('GET', _this.args.url, true);
-	            request.setRequestHeader('Range', 'bytes=' + parseInt(_this.args.bitRate * (_this.startTime + _this.bufferIndex * _this.args.chunkSize)) + '-' + parseInt(_this.args.bitRate * (_this.startTime + (_this.bufferIndex + 1) * _this.args.chunkSize)));
+	            request.setRequestHeader('Range', 'bytes=' + parseInt(_this.args.bitRate * (_this.startTime + _this.bufferIndex * _this.args.chunkSize)) + '-' + parseInt(_this.args.bitRate * (_this.startTime + (_this.bufferIndex + 1) * _this.args.chunkSize) + 500));
 	            request.responseType = "arraybuffer";
 	            if (first) {
 	                _this.buffers = [];
@@ -249,8 +249,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    this.args = _extends({}, defaultArgs, userArgs);
-
-	    this.args.bitRate += 50 * this.args.chunkSize; //account for ~0.5 second skips between buffers
 
 	    if (!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
 	    this.gainNode = window.context.createGain();

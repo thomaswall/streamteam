@@ -11,8 +11,6 @@ export default class StreamTeam {
             ...userArgs
         }
 
-        this.args.bitRate += 50 * this.args.chunkSize //account for ~0.5 second skips between buffers
-
         if(!window.context) window.context = new (window.AudioContext || window.webkitAudioContext)();
         this.gainNode = window.context.createGain();
         this.frequencyArray = [];
@@ -118,7 +116,7 @@ export default class StreamTeam {
         return new Promise((resolve, reject) => {
             let request = new XMLHttpRequest();
             request.open('GET', this.args.url, true);
-            request.setRequestHeader('Range', `bytes=${parseInt(this.args.bitRate*(this.startTime + this.bufferIndex * this.args.chunkSize))}-${parseInt(this.args.bitRate*(this.startTime + (this.bufferIndex + 1) * this.args.chunkSize))}`);
+            request.setRequestHeader('Range', `bytes=${parseInt(this.args.bitRate*(this.startTime + this.bufferIndex * this.args.chunkSize))}-${parseInt(this.args.bitRate*(this.startTime + (this.bufferIndex + 1) * this.args.chunkSize) + 500)}`);
             request.responseType = "arraybuffer";
             if(first) {
                 this.buffers = [];
