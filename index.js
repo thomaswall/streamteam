@@ -136,24 +136,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.frequencyArray = new Uint8Array(_this.analyser.frequencyBinCount);
 	        _this.analyser.getByteFrequencyData(_this.frequencyArray);
 
-	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize > _this.args.chunkSize / 2 + 0.5 && !_this.grabbing && !_this.grabbed && !_this.paused) {
-	            _this.grabbing = true;
-	            _this.grabNewBuffer(false).then(function (res) {
-	                _this.grabbed = true;
-	                _this.grabbing = false;
-	            });
-	        }
+	        if (_this.smoothTime == false) {
+	            if ((_this.currentTime - _this.startTime) % _this.args.chunkSize > _this.args.chunkSize / 2 + 0.5 && !_this.grabbing && !_this.grabbed && !_this.paused) {
+	                _this.grabbing = true;
+	                _this.grabNewBuffer(false).then(function (res) {
+	                    _this.grabbed = true;
+	                    _this.grabbing = false;
+	                });
+	            }
 
-	        if ((_this.currentTime - _this.startTime) % _this.args.chunkSize < 0.5 && !(_this.currentTime - _this.startTime < 0.5) && (_this.grabbing || _this.grabbed)) _this.readyToPlay = true;
+	            if ((_this.currentTime - _this.startTime) % _this.args.chunkSize < 0.5 && !(_this.currentTime - _this.startTime < 0.5) && (_this.grabbing || _this.grabbed)) _this.readyToPlay = true;
 
-	        if (_this.readyToPlay && _this.grabbed && !_this.paused) {
-	            _this.grabbed = false;
-	            _this.readyToPlay = false;
-	            _this.paused = false;
-	            _this.connectNewBuffer();
-	        }
+	            if (_this.readyToPlay && _this.grabbed && !_this.paused) {
+	                _this.grabbed = false;
+	                _this.readyToPlay = false;
+	                _this.paused = false;
+	                _this.connectNewBuffer();
+	            }
 
-	        if (Math.abs(window.context.currentTime - _this.lastTime) > 0.5 && !_this.paused && !(!_this.grabbed && _this.readyToPlay)) {
+	            if (Math.abs(window.context.currentTime - _this.lastTime) > 0.5 && !_this.paused && !(!_this.grabbed && _this.readyToPlay)) {
+	                _this.currentTime = _this.currentTime + window.context.currentTime - _this.lastTime;
+	                _this.lastTime = window.context.currentTime;
+	            }
+	        } else {
 	            _this.currentTime = _this.currentTime + window.context.currentTime - _this.lastTime;
 	            _this.lastTime = window.context.currentTime;
 	        }
@@ -266,6 +271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.paused = true;
 	    this.muted = false;
 	    this.readyToPlay = false;
+	    this.smoothTime = false;
 	};
 
 	exports['default'] = StreamTeam;
@@ -910,12 +916,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  , process    = global.process
 	  , isNode     = classof(process) == 'process'
 	  , P          = global[PROMISE]
+	  , empty      = function(){ /* empty */ }
 	  , Wrapper;
 
 	var testResolve = function(sub){
-	  var test = new P(function(){});
-	  if(sub)test.constructor = Object;
-	  return P.resolve(test) === test;
+	  var test = new P(empty), promise;
+	  if(sub)test.constructor = function(exec){
+	    exec(empty, empty);
+	  };
+	  (promise = P.resolve(test))['catch'](empty);
+	  return promise === test;
 	};
 
 	var USE_NATIVE = function(){
@@ -1593,7 +1603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  try {
 	    var arr  = [7]
 	      , iter = arr[ITERATOR]();
-	    iter.next = function(){ safe = true; };
+	    iter.next = function(){ return {done: safe = true}; };
 	    arr[ITERATOR] = function(){ return iter; };
 	    exec(arr);
 	  } catch(e){ /* empty */ }
