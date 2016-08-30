@@ -3,7 +3,8 @@ export default class StreamTeam {
         let defaultArgs = {
             fftSize: 512,
             chunkSize: 30,
-            bitRate: 16000
+            bitRate: 16000,
+						smoothTime: false
         }
 
         this.args = {
@@ -27,7 +28,6 @@ export default class StreamTeam {
         this.paused = true;
         this.muted = false;
         this.readyToPlay = false;
-				this.smoothTime = false;
     }
 
     startBuffer = () => {
@@ -84,7 +84,7 @@ export default class StreamTeam {
         this.frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
         this.analyser.getByteFrequencyData(this.frequencyArray);
 
-				if (this.smoothTime==false){
+				if (this.args.smoothTime==false){
 					if((this.currentTime - this.startTime)%this.args.chunkSize > this.args.chunkSize/2 + 0.5 && !this.grabbing && !this.grabbed && !this.paused) {
 							this.grabbing = true;
 							this.grabNewBuffer(false)

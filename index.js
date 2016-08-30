@@ -136,7 +136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _this.frequencyArray = new Uint8Array(_this.analyser.frequencyBinCount);
 	        _this.analyser.getByteFrequencyData(_this.frequencyArray);
 
-	        if (_this.smoothTime == false) {
+	        if (_this.args.smoothTime == false) {
 	            if ((_this.currentTime - _this.startTime) % _this.args.chunkSize > _this.args.chunkSize / 2 + 0.5 && !_this.grabbing && !_this.grabbed && !_this.paused) {
 	                _this.grabbing = true;
 	                _this.grabNewBuffer(false).then(function (res) {
@@ -250,7 +250,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var defaultArgs = {
 	        fftSize: 512,
 	        chunkSize: 30,
-	        bitRate: 16000
+	        bitRate: 16000,
+	        smoothTime: false
 	    };
 
 	    this.args = _extends({}, defaultArgs, userArgs);
@@ -271,7 +272,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    this.paused = true;
 	    this.muted = false;
 	    this.readyToPlay = false;
-	    this.smoothTime = false;
 	};
 
 	exports['default'] = StreamTeam;
