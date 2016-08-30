@@ -27,6 +27,7 @@ export default class StreamTeam {
         this.paused = true;
         this.muted = false;
         this.readyToPlay = false;
+				this.smoothTime = false;
     }
 
     startBuffer = () => {
@@ -69,7 +70,7 @@ export default class StreamTeam {
         this.analyser = window.context.createAnalyser();
         this.analyser.fftSize = this.args.fftSize;
         this.analyser.connect(this.sourceJs);
-        
+
         this.sources[0].connect(this.analyser);
         this.sources[0].connect(window.context.destination);
 
@@ -83,28 +84,34 @@ export default class StreamTeam {
         this.frequencyArray = new Uint8Array(this.analyser.frequencyBinCount);
         this.analyser.getByteFrequencyData(this.frequencyArray);
 
-        if((this.currentTime - this.startTime)%this.args.chunkSize > this.args.chunkSize/2 + 0.5 && !this.grabbing && !this.grabbed && !this.paused) {
-            this.grabbing = true;
-            this.grabNewBuffer(false)
-                .then(res => {
-                    this.grabbed = true;
-                    this.grabbing = false;
-            });
-        }
+				if (this.smoothTime==false){
+					if((this.currentTime - this.startTime)%this.args.chunkSize > this.args.chunkSize/2 + 0.5 && !this.grabbing && !this.grabbed && !this.paused) {
+							this.grabbing = true;
+							this.grabNewBuffer(false)
+									.then(res => {
+											this.grabbed = true;
+											this.grabbing = false;
+							});
+					}
 
-        if((this.currentTime - this.startTime)%this.args.chunkSize < 0.5 && !(this.currentTime - this.startTime < 0.5) && (this.grabbing || this.grabbed)) this.readyToPlay = true;
+					if((this.currentTime - this.startTime)%this.args.chunkSize < 0.5 && !(this.currentTime - this.startTime < 0.5) && (this.grabbing || this.grabbed)) this.readyToPlay = true;
 
-        if(this.readyToPlay && this.grabbed && !this.paused) {
-            this.grabbed = false;
-            this.readyToPlay = false;
-            this.paused = false;
-            this.connectNewBuffer();
-        }
+					if(this.readyToPlay && this.grabbed && !this.paused) {
+							this.grabbed = false;
+							this.readyToPlay = false;
+							this.paused = false;
+							this.connectNewBuffer();
+					}
 
-        if(Math.abs(window.context.currentTime - this.lastTime) > 0.5 && !this.paused && !(!this.grabbed && this.readyToPlay)) {
-            this.currentTime = this.currentTime + window.context.currentTime - this.lastTime;
-            this.lastTime = window.context.currentTime;
-        }
+					if ((Math.abs(window.context.currentTime - this.lastTime) > 0.5 && !this.paused && !(!this.grabbed && this.readyToPlay)) )  {
+							this.currentTime = this.currentTime + window.context.currentTime - this.lastTime;
+							this.lastTime = window.context.currentTime;
+					}
+				}
+				else{
+					this.currentTime = this.currentTime + window.context.currentTime - this.lastTime;
+					this.lastTime = window.context.currentTime;
+				}
     }
 
     stopBuffer = () => {
